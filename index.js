@@ -18,7 +18,8 @@ function isFragment(ast) {
 function getAST(ast, info) {
     if (ast.kind === 'FragmentSpread') {
         const fragmentName = ast.name.value;
-        return info.fragments[fragmentName];
+        //return info.fragments[fragmentName];
+        return info;
     }
     return ast;
 }
@@ -28,7 +29,7 @@ function flattenAST(ast, info, obj) {
     obj = obj || {};
     return getSelections(ast).reduce((flattened, a) => {
         if (isFragment(a)) {
-            flattened = flattenAST(getAST(a, info), info, flattened);
+            flattened = flattenAST(getAST(a, info.definitions[1]), info, flattened);
         } else {
             const name = a.name.value;
             if (flattened[name]) {
@@ -54,7 +55,7 @@ function flattenASTAlias(ast, info, obj) {
     obj = obj || {};
     return getSelections(ast).reduce((flattened, a) => {
         if (isFragment(a)) {
-            flattened = flattenASTAlias(getAST(a, info), info, flattened);
+            flattened = flattenASTAlias(getAST(a, info.definitions[1]), info, flattened);
         } else {
             const name = a.alias ? a.alias.value : a.name.value;
             if (flattened[name]) {
@@ -77,7 +78,7 @@ function graphqlFields(info, obj) {
 }
 
 function graphqlQuery(ast, typeInfo,visit, visitWithTypeInfo) {
-    let byTypes = [], byFields = [], byFieldsAlias = [], headers = [];
+    let byTypes = [], byFields = [], byFieldsAlias = [], headers = [], headersAlias = [];
     visit(ast, visitWithTypeInfo(typeInfo, {
         Field(node) {
             const fieldDef = typeInfo.getFieldDef();
@@ -92,12 +93,14 @@ function graphqlQuery(ast, typeInfo,visit, visitWithTypeInfo) {
                     byFieldsAlias.push(node.alias ? node.alias.value : fieldDef.name)
             );
         }
-    }));
-    visitNodes(flattenASTAlias(ast.definitions[0]),headers);
+    }));    
+    visitNodes(flattenAST(ast.definitions[0],ast),headers);
+    visitNodes(flattenASTAlias(ast.definitions[0],ast),headersAlias);
     return {
         schema: flattenAST(ast.definitions[0]),
         schemaAlias: flattenASTAlias(ast.definitions[0]),
         fieldsByNode: headers,
+        fieldsByNode: headersAlias,
         fields: byFields,
         fieldsAlias: byFieldsAlias,
         mapper: byTypes
