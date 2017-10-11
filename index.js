@@ -19,7 +19,7 @@ function getAST(ast, info) {
     if (ast.kind === 'FragmentSpread') {
         const fragmentName = ast.name.value;
         //return info.fragments[fragmentName];
-        return info;
+        if(info) return info.definitions[1];
     }
     return ast;
 }
@@ -29,7 +29,7 @@ function flattenAST(ast, info, obj) {
     obj = obj || {};
     return getSelections(ast).reduce((flattened, a) => {
         if (isFragment(a)) {
-            flattened = flattenAST(getAST(a, info.definitions[1]), info, flattened);
+            flattened = flattenAST(getAST(a, info), info, flattened);
         } else {
             const name = a.name.value;
             if (flattened[name]) {
@@ -55,7 +55,7 @@ function flattenASTAlias(ast, info, obj) {
     obj = obj || {};
     return getSelections(ast).reduce((flattened, a) => {
         if (isFragment(a)) {
-            flattened = flattenASTAlias(getAST(a, info.definitions[1]), info, flattened);
+            flattened = flattenASTAlias(getAST(a, info), info, flattened);
         } else {
             const name = a.alias ? a.alias.value : a.name.value;
             if (flattened[name]) {
