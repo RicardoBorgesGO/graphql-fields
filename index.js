@@ -100,7 +100,7 @@ function graphqlQuery(ast, typeInfo,visit, visitWithTypeInfo) {
         schema: flattenAST(ast.definitions[0]),
         schemaAlias: flattenASTAlias(ast.definitions[0]),
         fieldsByNode: headers,
-        fieldsByNode: headersAlias,
+        fieldsByNodeAlias: headersAlias,
         fields: byFields,
         fieldsAlias: byFieldsAlias,
         mapper: byTypes
